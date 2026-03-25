@@ -107,8 +107,8 @@ export function generateQuestion(level: number): Question {
       break
     }
     case Operation.Subtraction: {
-      a = randomInt(config.minNumber, config.maxNumber)
-      b = randomInt(config.minNumber, a) // b ≤ a so result ≥ 0
+      a = randomInt(config.minNumber + 1, config.maxNumber) // a > minNumber so b < a is possible
+      b = randomInt(config.minNumber, a - 1) // b < a so result ≥ 1
       answer = a - b
       break
     }

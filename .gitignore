@@ -1,0 +1,42 @@
+# dependencies
+node_modules
+.pnp
+.pnp.js
+
+# build output
+dist
+dist-ssr
+
+# local env files
+*.local
+.env
+.env.*
+
+# editor
+.vscode
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# coverage
+coverage
+
+# OS
+.DS_Store
+Thumbs.db
+
+# project-specific exclusions (as required)
+.claude/
+CLAUDE.md
+.mcp.json
+
+# temp
+temp-scaffold/

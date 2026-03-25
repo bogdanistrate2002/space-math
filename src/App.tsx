@@ -1,4 +1,4 @@
-import { Screen } from '@/types/game'
+import { Screen, Operation } from '@/types/game'
 import { useGameState } from '@/hooks/useGameState'
 import { StarField } from '@/components/StarField'
 import { MenuScreen } from '@/components/MenuScreen'
@@ -13,7 +13,13 @@ export default function App() {
   function renderScreen() {
     switch (state.screen) {
       case Screen.Menu:
-        return <MenuScreen onStart={() => dispatch({ type: 'START_GAME' })} />
+        return (
+          <MenuScreen
+            onStart={(operations: Operation[]) =>
+              dispatch({ type: 'START_GAME', payload: { operations } })
+            }
+          />
+        )
 
       case Screen.Playing:
         return <PlayingScreen state={state} dispatch={dispatch} />

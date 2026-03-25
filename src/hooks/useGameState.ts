@@ -1,5 +1,5 @@
 import { useReducer } from 'react'
-import { GameState, GameAction, Screen } from '@/types/game'
+import { GameState, GameAction, Screen, Operation } from '@/types/game'
 import { generateQuestion, calculatePoints, getLevelConfig, MAX_LEVEL } from '@/utils/gameLogic'
 
 // ─── Initial state ────────────────────────────────────────────────────────────
@@ -14,6 +14,7 @@ const INITIAL_STATE: GameState = {
   currentQuestion: null,
   isRetry: false,
   lastAnswerCorrect: null,
+  selectedOperations: [],
 }
 
 // ─── Reducer ──────────────────────────────────────────────────────────────────
@@ -21,10 +22,12 @@ const INITIAL_STATE: GameState = {
 function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case 'START_GAME': {
+      const ops = action.payload.operations
       return {
         ...INITIAL_STATE,
         screen: Screen.Playing,
-        currentQuestion: generateQuestion(1),
+        selectedOperations: ops,
+        currentQuestion: generateQuestion(1, ops),
       }
     }
 
@@ -50,7 +53,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
               streak: newStreak,
               questionsAnsweredInLevel: newQuestionsAnswered,
               lastAnswerCorrect: true,
-              screen: Screen.GameOver, // finished all levels → game over (win)
+              screen: Screen.GameOver,
             }
           }
           return {
@@ -70,10 +73,9 @@ function gameReducer(state: GameState, action: GameAction): GameState {
           questionsAnsweredInLevel: newQuestionsAnswered,
           isRetry: false,
           lastAnswerCorrect: true,
-          currentQuestion: generateQuestion(state.level),
+          currentQuestion: generateQuestion(state.level, state.selectedOperations),
         }
       } else {
-        // Wrong answer
         const newLives = state.lives - 1
         const newStreak = 0
 
@@ -87,7 +89,6 @@ function gameReducer(state: GameState, action: GameAction): GameState {
           }
         }
 
-        // Retry the same question
         return {
           ...state,
           lives: newLives,
@@ -103,7 +104,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         isRetry: false,
         lastAnswerCorrect: null,
-        currentQuestion: generateQuestion(state.level),
+        currentQuestion: generateQuestion(state.level, state.selectedOperations),
       }
     }
 
@@ -116,7 +117,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         questionsAnsweredInLevel: 0,
         isRetry: false,
         lastAnswerCorrect: null,
-        currentQuestion: generateQuestion(nextLevel),
+        currentQuestion: generateQuestion(nextLevel, state.selectedOperations),
       }
     }
 
@@ -138,3 +139,6 @@ export function useGameState() {
   const [state, dispatch] = useReducer(gameReducer, INITIAL_STATE)
   return { state, dispatch }
 }
+
+// Re-export for convenience
+export { Operation }

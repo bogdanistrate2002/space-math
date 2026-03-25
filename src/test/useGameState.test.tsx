@@ -1,7 +1,12 @@
 import { describe, it, expect } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useGameState } from '@/hooks/useGameState'
-import { Screen } from '@/types/game'
+import { Screen, Operation } from '@/types/game'
+
+const START = {
+  type: 'START_GAME' as const,
+  payload: { operations: [Operation.Addition, Operation.Subtraction] },
+}
 
 describe('useGameState', () => {
   it('starts on the Menu screen', () => {
@@ -13,25 +18,26 @@ describe('useGameState', () => {
   it('START_GAME transitions to Playing and generates a question', () => {
     const { result } = renderHook(() => useGameState())
     act(() => {
-      result.current.dispatch({ type: 'START_GAME' })
+      result.current.dispatch(START)
     })
     expect(result.current.state.screen).toBe(Screen.Playing)
     expect(result.current.state.currentQuestion).not.toBeNull()
     expect(result.current.state.level).toBe(1)
     expect(result.current.state.lives).toBe(3)
     expect(result.current.state.score).toBe(0)
+    expect(result.current.state.selectedOperations).toEqual(START.payload.operations)
   })
 
   it('RESTART returns to Menu', () => {
     const { result } = renderHook(() => useGameState())
-    act(() => result.current.dispatch({ type: 'START_GAME' }))
+    act(() => result.current.dispatch(START))
     act(() => result.current.dispatch({ type: 'RESTART' }))
     expect(result.current.state.screen).toBe(Screen.Menu)
   })
 
   it('correct answer increases score and streak', () => {
     const { result } = renderHook(() => useGameState())
-    act(() => result.current.dispatch({ type: 'START_GAME' }))
+    act(() => result.current.dispatch(START))
 
     const correct = result.current.state.currentQuestion!.correctAnswer
     act(() => result.current.dispatch({ type: 'ANSWER', payload: correct }))
@@ -42,7 +48,7 @@ describe('useGameState', () => {
 
   it('wrong answer decreases lives and resets streak', () => {
     const { result } = renderHook(() => useGameState())
-    act(() => result.current.dispatch({ type: 'START_GAME' }))
+    act(() => result.current.dispatch(START))
 
     const wrong = result.current.state.currentQuestion!.correctAnswer + 999
     act(() => result.current.dispatch({ type: 'ANSWER', payload: wrong }))
@@ -55,7 +61,7 @@ describe('useGameState', () => {
 
   it('losing all 3 lives triggers Game Over', () => {
     const { result } = renderHook(() => useGameState())
-    act(() => result.current.dispatch({ type: 'START_GAME' }))
+    act(() => result.current.dispatch(START))
 
     for (let i = 0; i < 3; i++) {
       const wrong = result.current.state.currentQuestion!.correctAnswer + 999
@@ -68,7 +74,7 @@ describe('useGameState', () => {
 
   it('answering wrong does not change question (retry mode)', () => {
     const { result } = renderHook(() => useGameState())
-    act(() => result.current.dispatch({ type: 'START_GAME' }))
+    act(() => result.current.dispatch(START))
 
     const questionBefore = result.current.state.currentQuestion
     const wrong = questionBefore!.correctAnswer + 999
@@ -79,9 +85,8 @@ describe('useGameState', () => {
 
   it('CONFIRM_LEVEL_UP advances level', () => {
     const { result } = renderHook(() => useGameState())
-    act(() => result.current.dispatch({ type: 'START_GAME' }))
+    act(() => result.current.dispatch(START))
 
-    // Force level-up by answering enough correct questions
     const questionsNeeded = 5 // level 1 requires 5
     for (let i = 0; i < questionsNeeded; i++) {
       const correct = result.current.state.currentQuestion!.correctAnswer
@@ -99,9 +104,8 @@ describe('useGameState', () => {
 
   it('streak bonus accumulates over consecutive correct answers', () => {
     const { result } = renderHook(() => useGameState())
-    act(() => result.current.dispatch({ type: 'START_GAME' }))
+    act(() => result.current.dispatch(START))
 
-    // Answer 3 questions correctly
     for (let i = 0; i < 3; i++) {
       if (result.current.state.screen !== Screen.Playing) break
       const correct = result.current.state.currentQuestion!.correctAnswer

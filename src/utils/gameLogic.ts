@@ -91,9 +91,16 @@ export function getLevelConfig(level: number): LevelConfig {
 
 // ─── Question generation ──────────────────────────────────────────────────────
 
-export function generateQuestion(level: number): Question {
+/**
+ * Generate a question for the given level.
+ * @param playerOps - Operations the player chose. Falls back to the level's
+ *                    allowed operations when omitted or empty.
+ */
+export function generateQuestion(level: number, playerOps?: Operation[]): Question {
   const config = getLevelConfig(level)
-  const operation = config.operations[randomInt(0, config.operations.length - 1)]
+  const availableOps =
+    playerOps && playerOps.length > 0 ? playerOps : config.operations
+  const operation = availableOps[randomInt(0, availableOps.length - 1)]
 
   let a: number
   let b: number
@@ -107,20 +114,18 @@ export function generateQuestion(level: number): Question {
       break
     }
     case Operation.Subtraction: {
-      a = randomInt(config.minNumber + 1, config.maxNumber) // a > minNumber so b < a is possible
-      b = randomInt(config.minNumber, a - 1) // b < a so result ≥ 1
+      a = randomInt(config.minNumber + 1, config.maxNumber) // a > minNumber
+      b = randomInt(config.minNumber, a - 1)               // b < a → result ≥ 1
       answer = a - b
       break
     }
     case Operation.Multiplication: {
-      // Keep multiplication manageable: use smaller factors
       a = randomInt(2, Math.min(12, config.maxNumber))
       b = randomInt(2, Math.min(12, config.maxNumber))
       answer = a * b
       break
     }
     case Operation.Division: {
-      // Generate a valid division: pick b then a multiple of b
       b = randomInt(2, Math.min(12, config.maxNumber))
       const quotient = randomInt(2, Math.min(12, config.maxNumber))
       a = b * quotient
@@ -156,7 +161,6 @@ export function generateChoices(correctAnswer: number): number[] {
     }
   }
 
-  // Fallback: add larger offsets if needed
   let fallback = correctAnswer + 6
   while (distractors.size < 3) {
     if (fallback !== correctAnswer && fallback > 0) distractors.add(fallback)

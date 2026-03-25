@@ -69,7 +69,6 @@ export function PlayingScreen({ state, dispatch }: PlayingScreenProps) {
             question={currentQuestion}
             onAnswer={handleAnswer}
             disabled={feedbackVisible}
-            lastAnswerCorrect={feedbackVisible ? lastAnswerCorrect : null}
             questionsAnswered={questionsAnsweredInLevel}
             levelConfig={levelConfig}
           />

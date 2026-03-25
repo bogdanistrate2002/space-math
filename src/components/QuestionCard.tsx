@@ -1,12 +1,11 @@
-import { Question } from '@/types/game'
+import { useState, useEffect } from 'react'
+import { Question, LevelConfig } from '@/types/game'
 import { operationSymbol } from '@/utils/gameLogic'
-import { LevelConfig } from '@/types/game'
 
 interface QuestionCardProps {
   question: Question
   onAnswer: (choice: number) => void
   disabled: boolean
-  lastAnswerCorrect: boolean | null
   questionsAnswered: number
   levelConfig: LevelConfig
 }
@@ -15,7 +14,6 @@ export function QuestionCard({
   question,
   onAnswer,
   disabled,
-  lastAnswerCorrect,
   questionsAnswered,
   levelConfig,
 }: QuestionCardProps) {
@@ -23,13 +21,28 @@ export function QuestionCard({
   const symbol = operationSymbol(operation)
   const progress = Math.min(questionsAnswered / levelConfig.questionsToPass, 1)
 
+  const [selected, setSelected] = useState<number | null>(null)
+
+  // Reset local selection whenever a new question arrives
+  useEffect(() => {
+    setSelected(null)
+  }, [question])
+
+  function handleSelect(choice: number) {
+    if (selected !== null || disabled) return
+    setSelected(choice)
+    onAnswer(choice)
+  }
+
   function choiceClass(choice: number): string {
     let cls = 'question-card__choice'
-    if (disabled && lastAnswerCorrect !== null) {
-      if (choice === correctAnswer) cls += ' question-card__choice--correct'
-      else if (lastAnswerCorrect === false && choice !== correctAnswer) {
-        // only highlight wrong if it was selected — we don't track which was clicked,
-        // so we highlight the correct one green and leave others neutral
+    if (selected !== null) {
+      if (choice === correctAnswer) {
+        cls += ' question-card__choice--correct'
+      } else if (choice === selected) {
+        cls += ' question-card__choice--wrong'
+      } else {
+        cls += ' question-card__choice--neutral'
       }
     }
     return cls
@@ -37,7 +50,11 @@ export function QuestionCard({
 
   return (
     <article className="question-card" aria-label="Întrebare de matematică">
-      <p className="question-card__prompt" aria-live="polite">
+      <p
+        className="question-card__prompt"
+        aria-live="polite"
+        aria-label={`Cât face ${operandA} ${symbol} ${operandB}?`}
+      >
         {operandA} {symbol} {operandB} = ?
       </p>
 
@@ -50,20 +67,26 @@ export function QuestionCard({
           <button
             key={choice}
             className={choiceClass(choice)}
-            onClick={() => onAnswer(choice)}
-            disabled={disabled}
+            onClick={() => handleSelect(choice)}
+            disabled={disabled || selected !== null}
             aria-label={`Răspuns: ${choice}`}
+            aria-pressed={selected === choice}
           >
             {choice}
           </button>
         ))}
       </div>
 
-      <div className="question-card__progress" aria-label="Progres nivel">
+      <div
+        className="question-card__progress"
+        aria-label={`Progres nivel: ${questionsAnswered} din ${levelConfig.questionsToPass}`}
+      >
         <span className="question-card__progress-label">
           {questionsAnswered} / {levelConfig.questionsToPass}
         </span>
-        <div className="question-card__progress-bar" role="progressbar"
+        <div
+          className="question-card__progress-bar"
+          role="progressbar"
           aria-valuenow={questionsAnswered}
           aria-valuemin={0}
           aria-valuemax={levelConfig.questionsToPass}

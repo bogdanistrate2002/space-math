@@ -6,8 +6,8 @@ interface LevelUpScreenProps {
 
 export function LevelUpScreen({ level, score, onContinue }: LevelUpScreenProps) {
   return (
-    <main className="levelup-screen" aria-label="Nivel următor">
-      <div className="levelup-screen__icon" aria-hidden="true">⭐</div>
+    <main className="levelup-screen" aria-label="Nivel completat">
+      <div className="levelup-screen__planet" aria-hidden="true">🪐</div>
 
       <h1 className="levelup-screen__title">Nivel {level} Complet!</h1>
 
